@@ -8,7 +8,7 @@ import AttachFileIcon from '@material-ui/icons/AttachFile'
 import { useCollection } from 'react-firebase-hooks/firestore';
 import Message from '../components/Message'
 import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon'
-import MicIcon from '@material-ui/icons/mic'
+import MicIcon from '@material-ui/icons/Mic'
 import { useState, useRef } from 'react';
 import firebase from 'firebase'
 import getRecipientEmail from '../utils/getRecipientEmail';
