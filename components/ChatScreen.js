@@ -186,6 +186,7 @@ const EndOfMessage = styled.div`
 
 const MessageContainer = styled.div`
     padding:30px;
+    margin-top:50px;
     background-color:#e5dcdB;
     min-height:90vh;
 `;
