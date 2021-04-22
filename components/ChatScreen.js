@@ -9,14 +9,15 @@ import { useCollection } from 'react-firebase-hooks/firestore';
 import Message from '../components/Message'
 import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon'
 import MicIcon from '@material-ui/icons/Mic'
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import firebase from 'firebase'
 import getRecipientEmail from '../utils/getRecipientEmail';
-import TimeAgo from 'timeago-react';
+import TimeAgo from 'timeago-react'
 
 function ChatScreen(props) {
 
-    const endOfMessagesRef = useRef(null);
+    // const endOfMessagesRef = useRef(null); // uncomment to use endOfMessageContainer
+    const messageContainerRef = useRef(null);
     const {chat,messages} = props;
     const [user] = useAuthState(auth);
     const [input, setInput ] = useState("");
@@ -53,17 +54,27 @@ function ChatScreen(props) {
         }
     }
 
-    const scrollToBottom = () =>{
-        endOfMessagesRef.current.scrollIntoView({
-            behaviour:"smooth",
-            block:"start"
-        });
+    // const scrollToBottom = () =>{
+    //     endOfMessagesRef.current.scrollIntoView({
+    //         behaviour:"smooth",
+    //         block:"start"
+    //     });
+    // }
+
+    const scrollToBottomMessageContainer = () => {
+        const scrollHeight = messageContainerRef.current.scrollHeight;
+        const clientHeight = messageContainerRef.current.clientHeight;
+        // endOfMessagesRef.current.offsetTop // uncomment to use endOfMessageContainer
+        messageContainerRef.current.scrollTo({
+                top: scrollHeight-clientHeight,
+                behavior: 'smooth',
+        })
+        console.log("render")
     }
 
     const sendMessage = (e) => {
         e.preventDefault();
         //update last seen
-        console.log("user:",user)
         db.collection('users').doc(user.uid).set({
             lastSeen: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge:true} )
@@ -75,10 +86,14 @@ function ChatScreen(props) {
             photoURL:user.photoURL
         })
         setInput("");
-        scrollToBottom();
+        // scrollToBottom();
     }
 
     const recipient = recipientSnapshot?.docs?.[0]?.data();
+
+    useEffect(()=>{
+        scrollToBottomMessageContainer(); //too many renders
+    })
 
     return(
         <Container>
@@ -109,9 +124,9 @@ function ChatScreen(props) {
                     </IconButton>
                 </HeaderIcons>
             </Header>
-            <MessageContainer>
+            <MessageContainer ref={messageContainerRef}>
                 {showMessages()}
-                <EndOfMessage ref={endOfMessagesRef}/>
+                {/* <EndOfMessage ref={endOfMessagesRef}/> // uncomment to use endOfMessageContainer*/} 
             </MessageContainer>
             <InputContainer>
                 <InsertEmoticonIcon />
@@ -126,7 +141,10 @@ function ChatScreen(props) {
 
 export default ChatScreen;
 
-const Container = styled.div``;
+const Container = styled.div`
+    display:flex;
+    flex-direction:column;
+`;
 
 const Input = styled.input`
     flex:1;
@@ -146,23 +164,36 @@ const InputContainer = styled.form`
     display:flex;
     align-items:center;
     padding:10px;
-    position:sticky;
-    bottom:0;
     background-color:white;
     z-index:100;
+    height:8vh;
 `;
 
 const Header = styled.div`
-    position:sticky;
     background-color:white;
     z-index:100;
-    top:0;
     display:flex;
     padding:11px;
     align-items:center;
     border-bottom:1px solid whitesmoke;
-    height:80px;
+    height:8vh;
 `;
+
+const MessageContainer = styled.div`
+    padding:30px;
+    background-color:#e5dcdB;
+    min-height:84vh;
+    max-height:84vh;
+    overflow-y:scroll;
+     ::-webkit-scrollbar {
+         display:none;
+     }
+
+     -ms-overflow-style:none;
+     scrollbar-width:none;
+`;
+
+// const EndOfMessage = styled.div``;   // uncomment to use endOfMessageContainer
 
 const HeaderInformation = styled.div`
     margin-left: 15px;
@@ -179,14 +210,3 @@ const HeaderInformation = styled.div`
 `;
 
 const HeaderIcons = styled.div``;
-
-const EndOfMessage = styled.div`
-    margin-bottom:50px;
-`;
-
-const MessageContainer = styled.div`
-    padding:30px;
-    margin-top:50px;
-    background-color:#e5dcdB;
-    min-height:90vh;
-`;
