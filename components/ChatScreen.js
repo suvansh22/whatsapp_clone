@@ -1,4 +1,4 @@
-import { Avatar, IconButton } from '@material-ui/core'
+import { Avatar, Icon, IconButton } from '@material-ui/core'
 import { useRouter } from 'next/router';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import styled from 'styled-components'
@@ -12,12 +12,19 @@ import MicIcon from '@material-ui/icons/Mic'
 import { useState, useRef, useEffect } from 'react';
 import firebase from 'firebase'
 import getRecipientEmail from '../utils/getRecipientEmail';
-import TimeAgo from 'timeago-react'
+import TimeAgo from 'timeago-react';
+let Picker;
+if(typeof window !== 'undefined')
+{
+    Picker = require('emoji-picker-react').default;
+}
 
 function ChatScreen(props) {
-
+    console.log("ASD:",Picker)
     // const endOfMessagesRef = useRef(null); // uncomment to use endOfMessageContainer
+    const [emojiKeyboard,setEmojiKeyboard] = useState(false);
     const messageContainerRef = useRef(null);
+    const inputRef = useRef(null)
     const {chat,messages} = props;
     const [user] = useAuthState(auth);
     const [input, setInput ] = useState("");
@@ -91,6 +98,12 @@ function ChatScreen(props) {
 
     const recipient = recipientSnapshot?.docs?.[0]?.data();
 
+    const onEmojiClick = (event, emojiObject) => {
+        const newInput = input.concat(emojiObject.emoji);
+        setInput(newInput);
+        inputRef.current.focus();
+      };
+
     useEffect(()=>{
         scrollToBottomMessageContainer(); //too many renders
     })
@@ -129,8 +142,18 @@ function ChatScreen(props) {
                 {/* <EndOfMessage ref={endOfMessagesRef}/> // uncomment to use endOfMessageContainer*/} 
             </MessageContainer>
             <InputContainer>
-                <InsertEmoticonIcon />
-                <Input value={input} onChange={e=>setInput(e.target.value)} />
+                {
+                    emojiKeyboard?(
+                        <EmojiKeyboardContainer>
+                            <Picker onEmojiClick={onEmojiClick}/>
+                        </EmojiKeyboardContainer>
+                    ):
+                    null
+                }
+                <IconButton onClick={()=>setEmojiKeyboard(!emojiKeyboard)}>
+                    <InsertEmoticonIcon />
+                </IconButton>
+                <Input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} />
                 <button hidden disabled={!input} type="submit" onClick={sendMessage}>Send Message</button>
                 <MicIcon />
             </InputContainer>
@@ -144,6 +167,11 @@ export default ChatScreen;
 const Container = styled.div`
     display:flex;
     flex-direction:column;
+`;
+
+const EmojiKeyboardContainer = styled.div`
+    position:absolute;
+    bottom:8vh;
 `;
 
 const Input = styled.input`

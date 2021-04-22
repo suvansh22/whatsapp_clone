@@ -11,9 +11,8 @@ import Chat from '../components/Chat'
  
 export default function Sidebar() {
 
-    const [user] = useAuthState(auth);
-    const userChatRef = db.collection('chats').where('users','array-contains',user.email)
-    // console.log("ASD:",db.collection('chats').doc('JK18zKeeJ8frd5kRerdm'))
+    const [user,loading] = useAuthState(auth);
+    const userChatRef = loading?null:db.collection('chats').where('users','array-contains',user.email)
     const [chatsSnapshot] = useCollection(userChatRef)
 
     const CreateChat = () =>{
